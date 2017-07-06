@@ -141,24 +141,36 @@ module.exports = function(RED) {
         this.channel = n.channel || "";
         var node = this;
 
+        // Deprecated
         var Slack = require('slack-client');
 
+        /*
+        * Instantiate the new RTM client
+        */
+        var RtmClient = require('@slack/client').RtmClient;
+        var CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
+        var rtm = new RtmClient(bot_token);
         var token = this.apiToken;
         var autoReconnect = true;
         var autoMark = true;
 
+        // Deprecated
         var slack = {};
+
+        var rtm = {};
+
         if(slackBotGlobal && slackBotGlobal[token]) {
             if (slackDebug) { node.log("OUT: using an old slack session"); }
             slack = slackBotGlobal[token];
         } else {
             if (slackDebug) { node.log("OUT: new slack session"); }
-            slack = new Slack(token, autoReconnect, autoMark);
+            rtm = new RtmClient(token);
 
             slack.on('loggedIn', function () {
                 node.log('OUT: Logged in.');
             })
 
+            // Not sure what to do with this yet
             slackBotGlobal[token] = slack;
         }
 
@@ -197,7 +209,7 @@ module.exports = function(RED) {
             }
 
             try {
-                slackChannel.send(msg.payload);
+                rtm.sendMessage(msg.payload);
             }
             catch (err) {
                 console.trace();
